@@ -3,9 +3,15 @@
   <head>
     <meta charset="utf-8">
     <title>u-pain-i-guess</title>
+    <meta content="initial-scale=0.5,user-scalable=0,maximum-scale=0.5,width=device-width" name="viewport">
   </head>
   <body>
     <div id="app"></div>
     <!-- built files will be auto injected -->
   </body>
+  <script>
+    document.body.addEventListener('touchmove', function (event) {
+      event.preventDefault()
+    }, false)
+  </script>
 </html>
