@@ -1,12 +1,18 @@
 <template>
   <div class="canvas">
     <canvas ref="canvas" :width="width" :height="width"></canvas>
+    <button @click="undo" type="button">undo</button>
   </div>
 </template>
 
 <style>
   canvas {
     display: block;
+  }
+  button {
+    width: 40px;
+    height: 100px;
+    font-size: 24px;
   }
 </style>
 
@@ -18,6 +24,11 @@
       return {
         width: window.innerWidth,
         drew: {}
+      }
+    },
+    methods: {
+      undo() {
+        this.drew.undo()
       }
     },
     mounted() {
