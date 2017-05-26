@@ -2,6 +2,8 @@
   <div class="canvas">
     <canvas ref="canvas" :width="width" :height="width"></canvas>
     <button @click="undo" type="button">undo</button>
+    <button @click="redo" type="button">redo</button>
+    <input type="color">
   </div>
 </template>
 
@@ -10,6 +12,7 @@
     display: block;
   }
   button {
+    margin: 40px;
     width: 40px;
     height: 100px;
     font-size: 24px;
@@ -23,16 +26,19 @@
     data() {
       return {
         width: window.innerWidth,
-        drew: {}
       }
     },
     methods: {
       undo() {
         this.drew.undo()
+      },
+      redo() {
+        this.drew.redo()
       }
     },
     mounted() {
       this.drew = new Drew(this.$refs.canvas)
+      console.log(this.drew)
     },
     directives: {
       drew: {

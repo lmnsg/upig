@@ -13,5 +13,19 @@
     document.body.addEventListener('touchmove', function (event) {
       event.preventDefault()
     }, false)
+
+
+    const host = window.location.hostname
+    const port = 8000
+    const client = new window.WebSocket('ws://' + host + ':' + port + '/')
+
+    client.onmessage = function (e) {
+      console.log(e.data)
+      if (e.data === 'refresh') {
+        window.Hero.$callNative.command('refresh')
+      }
+    }
+
+
   </script>
 </html>
