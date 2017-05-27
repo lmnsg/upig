@@ -8,18 +8,15 @@ app.listen()
 const server = http.createServer(app.callback())
 
 const wss = new WebSocket.Server({ server })
+const clients = wss.clients
 
-wss.on('connection', function connection(ws) {
-  console.log(ws)
-  // You might use location.query.access_token to authenticate or share sessions
-  // or req.headers.cookie (see http://stackoverflow.com/a/16395220/151312)
-
+wss.on('connection', (ws, req) => {
   ws.on('message', function incoming(message) {
-    console.log('received: %s', message);
-  });
-
-  ws.send('something');
-});
+    const other = new Set(clients)
+    other.delete(ws)
+    other.forEach(ws => ws.send(message))
+  })
+})
 
 app
   .use(router.routes())

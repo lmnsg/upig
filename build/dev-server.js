@@ -50,6 +50,16 @@ Object.keys(proxyTable).forEach(function (context) {
   app.use(proxyMiddleware(options.filter || context, options))
 })
 
+const wsProxy = proxyMiddleware('/room', {
+  target: 'http://localhost:8000',
+  changeOrigin: true,                     // for vhosted sites, changes host header to match to target's host
+  ws: true,                               // enable websocket proxy
+  logLevel: 'debug'
+})
+
+app.use(wsProxy)
+
+
 // handle fallback for HTML5 history API
 app.use(require('connect-history-api-fallback')())
 
@@ -82,7 +92,7 @@ devMiddleware.waitUntilValid(() => {
 })
 
 var server = app.listen(port)
-
+server.on('upgrade', wsProxy.upgrade);
 module.exports = {
   ready: readyPromise,
   close: () => {
