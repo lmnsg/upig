@@ -1,6 +1,6 @@
 <template>
-  <div class="canvas">
-    <canvas ref="canvas" :width="width" :height="width"></canvas>
+  <div class="canvas-wrapper" ref="wrapper">
+    <canvas v-if="board.width" class="drewver" ref="canvas" :width="board.width" :height="board.height"></canvas>
     <Compact class="picker" v-model="colors"></Compact>
     <button @click="undo" type="button">undo</button>
     <button @click="redo" type="button">redo</button>
@@ -9,12 +9,12 @@
 </template>
 
 <style scoped>
-  canvas {
-    display: block;
-    margin: 10px;
-    border: 1px red solid;
+  .canvas-wrapper {
+    width: 100%;
+    height: 100%;
   }
-
+  .drewver {
+  }
   button {
     margin: 40px;
     width: 40px;
@@ -37,9 +37,11 @@
 
   export default {
     name: 'Canvas',
+    props: ['board'],
     data() {
       return {
-        width: window.innerWidth - 20,
+        width: 0,
+        height: 0,
         ws: open('/room'),
         colors: {
           hex: '#4d4d4d'
@@ -48,6 +50,14 @@
     },
     created() {
       this.$watch('colors.hex', (hex) => this.drew.setLineStyle({ color: hex }))
+      this.$watch('board.width', (width) => {
+        if (width > 0) {
+          this.$nextTick(() => {
+            this.drew = new Drew(this.$refs.canvas, this.ws)
+            this.drew.setLineStyle({ color: this.colors.hex })
+          })
+        }
+      })
     },
     methods: {
       undo() {
@@ -64,8 +74,6 @@
       }
     },
     mounted() {
-      this.drew = new Drew(this.$refs.canvas, this.ws)
-      this.drew.setLineStyle({ color: this.colors.hex })
     },
     components: {
       Compact

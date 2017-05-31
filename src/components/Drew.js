@@ -16,14 +16,14 @@ export default class Drew {
     this.init()
 
     ws.onmessage = ({ data }) => {
-      const { type, clientX, clientY, width } = JSON.parse(data)
+      const { type, x, y, width } = JSON.parse(data)
       let scale = 1
 
       if (width) {
-        scale = $canvas.width / width
+        scale = this.rect.width / width
       }
 
-      this[type](clientX * scale, clientY * scale)
+      this[type](x * scale, y * scale)
     }
   }
 
@@ -41,25 +41,34 @@ export default class Drew {
   }
 
   bindListener ($canvas) {
+    const { rect } = this
+    const getXY = (touch) => {
+      return {
+        x: touch.clientX - rect.left,
+        y: touch.clientY - rect.top
+      }
+    }
+
     $canvas.addEventListener('touchstart', ({ touches }) => {
-      const { clientX, clientY } = touches[0]
-      this.start(clientX, clientY)
+      const { x, y } = getXY(touches[0])
+      this.start(x, y)
       this.ws.send(JSON.stringify({
         type: 'start',
-        clientX,
-        clientY,
-        width: this.$canvas.width
+        x,
+        y,
+        width: rect.width
       }))
     }, { passive: true })
 
     $canvas.addEventListener('touchmove', ({ touches }) => {
-      const { clientX, clientY } = touches[0]
-      this.drawing(clientX, clientY)
+      const { x, y } = getXY(touches[0])
+
+      this.drawing(x, y)
       this.ws.send(JSON.stringify({
         type: 'drawing',
-        clientX,
-        clientY,
-        width: this.$canvas.width
+        x,
+        y,
+        width: rect.width
       }))
     }, { passive: true })
 
@@ -72,35 +81,30 @@ export default class Drew {
   }
 
   start (x, y) {
-    const { ctx, rect } = this
-    const _x = x - rect.left
-    const _y = y - rect.top
-
+    const { ctx } = this
     ctx.beginPath()
-    ctx.moveTo(_x, _y)
-    ctx.lineTo(_x, _y + 0.01)
+    ctx.moveTo(x, y)
+    ctx.lineTo(x, y + 0.01)
     ctx.stroke()
 
-    this._lastX = _x
-    this._lastY = _y
+    this._lastX = x
+    this._lastY = y
   }
 
   drawing (x, y) {
-    const { ctx, rect } = this
-    const _x = x - rect.left
-    const _y = y - rect.top
-    const dx = _x - this._lastX
-    const dy = _y - this._lastY
+    const { ctx } = this
+    const dx = x - this._lastX
+    const dy = y - this._lastY
 
     if (dx * dx + dy * dy < 4) return
 
     ctx.beginPath()
     ctx.moveTo(this._lastX, this._lastY)
-    ctx.lineTo(_x, _y)
+    ctx.lineTo(x, y)
     ctx.stroke()
 
-    this._lastX = _x
-    this._lastY = _y
+    this._lastX = x
+    this._lastY = y
   }
 
   drawingEnd () {
@@ -132,7 +136,7 @@ export default class Drew {
     }
   }
 
-  setLineStyle({ width, color }) {
+  setLineStyle ({ width, color }) {
     if (width) this._lineWidth = width
     if (color) this._lineColor = color
     this.init()
