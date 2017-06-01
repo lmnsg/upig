@@ -9,56 +9,6 @@
   </div>
 </template>
 
-<style lang="scss" scoped>
-  .wrapper {
-    padding: 6px 4px;
-    background: #945a44;
-  }
-
-  .canvas {
-    display: block;
-    border-radius: 4px;
-    background: #fff;
-  }
-
-  .tools {
-    position: relative;
-    display: flex;
-    margin-top: -30px;
-    padding: 0 6px;
-    height: 30px;
-    opacity: .3;
-    transition: opacity .6s;
-    -webkit-transform: translate3d(0, 0, 0);
-    &.active2 {
-      opacity: 1;
-    }
-    .picker {
-      width: 202px;
-      height: 25px;
-      margin: 0 0 0 auto;
-      box-shadow: none;
-      overflow: hidden;
-    }
-
-    button {
-      margin-right: 16px;
-      line-height: 30px;
-      color: #d19bb0;
-      font-size: 24px;
-    }
-  }
-
-</style>
-<style>
-  .picker li {
-    margin-right: -4px;
-    width: 20px;
-    height: 20px;
-    border-radius: 15px;
-  }
-</style>
-
 <script>
   import { Compact } from 'vue-color'
   import Drew from './Drew'
@@ -110,3 +60,53 @@
     }
   }
 </script>
+
+<style lang="scss" scoped>
+  .wrapper {
+    padding: 6px 4px;
+    background: #945a44;
+  }
+
+  .canvas {
+    display: block;
+    border-radius: 4px;
+    background: #fff;
+  }
+
+  .tools {
+    position: relative;
+    display: flex;
+    margin-top: -30px;
+    padding: 0 6px;
+    height: 30px;
+    opacity: .3;
+    transition: opacity .6s;
+    -webkit-transform: translate3d(0, 0, 0);
+    &.active2 {
+      opacity: 1;
+    }
+    .picker {
+      width: 202px;
+      height: 25px;
+      margin: 0 0 0 auto;
+      box-shadow: none;
+      overflow: hidden;
+    }
+
+    button {
+      margin-right: 16px;
+      line-height: 30px;
+      color: #d19bb0;
+      font-size: 24px;
+    }
+  }
+
+</style>
+<style>
+  .picker li {
+    margin-right: -4px;
+    width: 20px;
+    height: 20px;
+    border-radius: 15px;
+  }
+</style>
