@@ -60,9 +60,9 @@ export default class Drew {
       }))
     }, { passive: true })
 
-    $canvas.addEventListener('touchmove', ({ touches }) => {
-      const { x, y } = getXY(touches[0])
-
+    $canvas.addEventListener('touchmove', (e) => {
+      e.preventDefault()
+      const { x, y } = getXY(e.touches[0])
       this.drawing(x, y)
       this.ws.send(JSON.stringify({
         type: 'drawing',
@@ -70,7 +70,7 @@ export default class Drew {
         y,
         width: rect.width
       }))
-    }, { passive: true })
+    })
 
     $canvas.addEventListener('touchend', () => {
       this.drawingEnd()
@@ -92,14 +92,14 @@ export default class Drew {
   }
 
   drawing (x, y) {
-    const { ctx } = this
-    const dx = x - this._lastX
-    const dy = y - this._lastY
+    const { ctx, _lastX, _lastY } = this
+    const dx = x - _lastX
+    const dy = y - _lastY
 
     if (dx * dx + dy * dy < 4) return
 
     ctx.beginPath()
-    ctx.moveTo(this._lastX, this._lastY)
+    ctx.moveTo(_lastX, _lastY)
     ctx.lineTo(x, y)
     ctx.stroke()
 
