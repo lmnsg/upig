@@ -5,6 +5,7 @@ export default class Drew {
   _redoQueue = []
   _lastX
   _lastY
+  _points = []
 
   constructor ($canvas, ws) {
     this.$canvas = $canvas
@@ -89,18 +90,25 @@ export default class Drew {
 
     this._lastX = x
     this._lastY = y
+
+    this._points.push({ x, y })
   }
 
   drawing (x, y) {
-    const { ctx, _lastX, _lastY } = this
+    const { ctx, _lastX, _lastY, _points } = this
     const dx = x - _lastX
     const dy = y - _lastY
 
     if (dx * dx + dy * dy < 4) return
 
     ctx.beginPath()
-    ctx.moveTo(_lastX, _lastY)
-    ctx.lineTo(x, y)
+    ctx.moveTo(_points[0].x, _points[0].y)
+    _points.push({ x, y })
+
+    for (let i = 0; i < _points.length - 1; i++) {
+      ctx.quadraticCurveTo(_points[i].x, _points[i].y, (_points[i].x + _points[i + 1].x) / 2, (_points[i].y + _points[i + 1].y) / 2)
+    }
+
     ctx.stroke()
 
     this._lastX = x
@@ -109,6 +117,7 @@ export default class Drew {
 
   drawingEnd () {
     this._history.push(this._getImageData())
+    this._points = []
   }
 
   clear () {
