@@ -1,26 +1,36 @@
 <template>
   <div class="home">
     <button @click="start" class="start iconfont icon-kaishi"> 开始游戏 </button>
+    <Register @done="go" v-model="showRegister"></Register>
   </div>
 </template>
 
 <script type="text/babel">
   import { storage } from '../util'
+  import uuid from 'uuid'
 
   export default {
+    data() {
+      return {
+        showRegister: false
+      }
+    },
     methods: {
       start() {
         const user = storage.getItem('user')
 
         if (user) {
-          this.go(user.id)
+          this.go()
         } else {
-          // todo 注册
+          this.showRegister = true
         }
       },
-      go(id) {
-        this.$router.push({ name: 'game', params: { id } })
+      go() {
+        this.$router.push({ name: 'game', params: { uuid: uuid.v1() } })
       }
+    },
+    components: {
+      Register: require('./sub/Register.vue')
     }
   }
 </script>

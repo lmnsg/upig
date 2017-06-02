@@ -18,6 +18,7 @@
 
 <script>
   import Canvas from './Canvas.vue'
+  import { open } from '../client'
 
   export default {
     data() {
@@ -27,6 +28,19 @@
           height: 0
         }
       }
+    },
+    beforeRouteEnter({ params }, from, next) {
+      const { uuid } = params
+      const ws = open(`/${uuid}`)
+      ws.onmessage = (msg) => {
+        console.log(msg)
+      }
+      next(vm => {
+        vm.ws = ws
+      })
+    },
+    created() {
+
     },
     mounted() {
       this.board.height = this.board.width = window.innerWidth

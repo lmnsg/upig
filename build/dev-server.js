@@ -50,7 +50,7 @@ Object.keys(proxyTable).forEach(function (context) {
   app.use(proxyMiddleware(options.filter || context, options))
 })
 
-const wsProxy = proxyMiddleware('/room', {
+const wsProxy = proxyMiddleware('/ws', {
   target: 'http://localhost:8000',
   changeOrigin: true,                     // for vhosted sites, changes host header to match to target's host
   ws: true,                               // enable websocket proxy

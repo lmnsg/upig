@@ -15,8 +15,11 @@
     "lint": "eslint --ext .js,.vue src test/unit/specs test/e2e/specs"
   },
   "dependencies": {
+    "faker-zh-cn": "^0.5.9",
     "koa": "^2.2.0",
+    "koa-bodyparser": "^4.2.0",
     "koa-router": "^7.2.0",
+    "uuid": "^3.0.1",
     "vue": "^2.2.6",
     "vue-color": "^2.0.9",
     "vue-router": "^2.3.1",
