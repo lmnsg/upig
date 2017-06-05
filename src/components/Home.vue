@@ -26,7 +26,9 @@
         }
       },
       go() {
-        this.$router.push({ name: 'game', params: { uuid: uuid.v1() } })
+        const id = uuid.v1()
+        this.$router.push({ name: 'game', params: { id } })
+        storage.setItem('order-' + id, 0)
       }
     },
     components: {

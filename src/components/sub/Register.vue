@@ -1,12 +1,14 @@
 <template>
-  <div v-show="value" class="register">
-    <div class="title">你的名字?</div>
-    <form class="form" @submit.prevent="doRegister">
-      <input class="g-name" type="text" v-model="name">
-      <p class="tip">下次可以直接使用此名字登录</p>
-      <button type="button" class="refresh iconfont icon-refresh" @click="getName"></button>
-      <button type="submit" class="button">→</button>
-    </form>
+  <div v-show="value" class="popup">
+    <div class="register">
+      <div class="title">你的名字?</div>
+      <form class="form" @submit.prevent="doRegister">
+        <input class="g-name" type="text" v-model="name">
+        <p class="tip">下次可以直接使用此名字登录</p>
+        <button type="button" class="refresh iconfont icon-refresh" @click="getName"></button>
+        <button type="submit" class="button">→</button>
+      </form>
+    </div>
   </div>
 </template>
 
@@ -29,10 +31,12 @@
         const { pureName } = this
         if (!pureName) return alert('你的名字？')
 
-        storage.setItem('user', {
+        const user = {
           name: pureName
-        })
-        this.$emit('done')
+        }
+        storage.setItem('user', user)
+
+        this.$emit('done', user)
         this.$emit('input', false)
       },
       getName() {
@@ -46,6 +50,11 @@
 </script>
 
 <style lang="scss" scoped="">
+  .popup {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
   .register {
     position: absolute;
     width: 300px;

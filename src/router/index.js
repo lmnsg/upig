@@ -9,7 +9,7 @@ export default new Router({
   mode: 'history',
   routes: [
     {
-      path: '/game/:uuid',
+      path: '/game/:id',
       name: 'game',
       component: Game
     },

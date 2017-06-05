@@ -15,17 +15,6 @@ export default class Drew {
     this._history.push(this._getImageData())
     this.bindListener($canvas)
     this.init()
-
-    ws.onmessage = ({ data }) => {
-      const { type, x, y, width } = JSON.parse(data)
-      let scale = 1
-
-      if (width) {
-        scale = this.rect.width / width
-      }
-
-      this[type](x * scale, y * scale)
-    }
   }
 
   init () {

@@ -3,6 +3,9 @@
 import Vue from 'vue'
 import App from './App.vue'
 import router from './router'
+
+import { extendWS } from './extends'
+extendWS(WebSocket)
 Vue.config.productionTip = false
 
 import './scss/app.scss'

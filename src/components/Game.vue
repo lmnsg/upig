@@ -2,51 +2,78 @@
   <div class="board">
     <div class="header">
       <div class="counter"></div>
-      <div class="key">画：三个字，动物</div>
+      <div class="key">{{ title }}</div>
       <!--<span class="key">猜：</span>-->
     </div>
     <div class="main">
-      <MyCanvas></MyCanvas>
+      <MyCanvas v-if="ws" :ws="ws"></MyCanvas>
+      <div v-if="game" class="players">
+        <div class="player" v-for="player in game.players">
+          <span class="name">{{ player.user.name }}</span>
+          <span class="grade">{{ player.grade }}</span>
+        </div>
+      </div>
     </div>
 
     <div class="footer">
       <input class="chat-input" type="text">
     </div>
     <div class="table"></div>
+    <Register @done="join" v-model="showRegister"></Register>
   </div>
 </template>
 
 <script>
   import Canvas from './Canvas.vue'
+  import Register from './sub/Register.vue'
   import { open } from '../client'
+  import { storage } from '../util'
 
   export default {
     data() {
       return {
+        ws: null,
+        showRegister: false,
+        user: null,
+        game: null,
+        title: '请转发邀请好友加入游戏',
         board: {
           width: 0,
           height: 0
         }
       }
     },
-    beforeRouteEnter({ params }, from, next) {
-      const { uuid } = params
-      const ws = open(`/${uuid}`)
-      ws.onmessage = (msg) => {
-        console.log(msg)
+    created() {
+      const { id } = this.$route.params
+      const ws = this.ws = open(`/${id}`)
+      const user = storage.getItem('user')
+
+      if (!user) {
+        this.showRegister = true
+      } else {
+        ws.addEventListener('open', () => this.join(user))
       }
-      next(vm => {
-        vm.ws = ws
+
+      ws.addEventListener('message', ({ data }) => {
+        const _data = JSON.parse(data)
+        if (_data.action === 'game') this.game = _data.game
       })
     },
-    created() {
-
+    methods: {
+      join(user) {
+        this.user = user
+        this.ws.sendJSON({
+          action: 'join',
+          user
+        })
+      }
     },
     mounted() {
       this.board.height = this.board.width = window.innerWidth
     },
     components: {
-      MyCanvas: Canvas
+      MyCanvas: Canvas,
+      Register
     }
   }
 </script>
@@ -76,6 +103,26 @@
         font-size: 20px;
       }
     }
+
+    .players {
+      .player {
+        display: inline-block;
+        margin: 6px 0 0 10px;
+        padding: 0 10px;
+        height: 30px;
+        line-height: 30px;
+        border: 1px #d19bb0 solid;
+        background: #fff;
+        border-radius: 15px;
+        font-size: 12px;
+        color: #666;
+      }
+      .grade {
+        font-size: 14px;
+        color: #d19bb0;
+      }
+    }
+
     .footer {
       display: flex;
       padding: 6px 20px;

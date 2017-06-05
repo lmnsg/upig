@@ -24,3 +24,12 @@ button, input, select, textarea {
   background: none;
   border: none;
 }
+
+.popup {
+  position: absolute;
+  left: 0;
+  right: 0;
+  top: 0;
+  bottom: 0;
+  background: rgba(209, 155, 176, .4);
+}

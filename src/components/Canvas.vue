@@ -12,14 +12,13 @@
 <script>
   import { Compact } from 'vue-color'
   import Drew from './Drew'
-  import { open } from '../client'
 
   export default {
     name: 'Canvas',
+    props: ['ws'],
     data() {
       return {
         width: window.innerWidth - 8,
-        ws: open('/room'),
         colors: {
           hex: '#4d4d4d'
         },
@@ -52,8 +51,18 @@
       }
     },
     mounted() {
-      this.drew = new Drew(this.$refs.canvas, this.ws)
-      this.drew.setLineStyle({ color: this.colors.hex })
+      const drew = this.drew = new Drew(this.$refs.canvas, this.ws)
+      this.ws.onmessage = ({ data }) => {
+        const { type, x, y, width } = JSON.parse(data)
+        let scale = 1
+
+        if (width) {
+          scale = this.rect.width / width
+        }
+
+        drew[type] && drew[type](x * scale, y * scale)
+      }
+      drew.setLineStyle({ color: this.colors.hex })
     },
     components: {
       Compact
