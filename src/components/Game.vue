@@ -7,11 +7,14 @@
     </div>
     <div class="main">
       <MyCanvas v-if="ws" :ws="ws"></MyCanvas>
-      <div v-if="game" class="players">
-        <div class="player" v-for="player in game.players">
-          <span class="name">{{ player.user.name }}</span>
-          <span class="grade">{{ player.grade }}</span>
-        </div>
+
+      <button class="btn-beginning">开始游戏</button>
+    </div>
+
+    <div v-if="game" class="players">
+      <div class="player" v-for="player in game.players">
+        <span class="name">{{ player.user.name }}</span>
+        <span class="grade">{{ player.grade }}</span>
       </div>
     </div>
 
@@ -31,12 +34,14 @@
 
   export default {
     data() {
+      const owner = storage.getItem('owner')
       return {
         ws: null,
         showRegister: false,
-        user: null,
+        user: storage.getItem('user'),
+        isOwner: owner && owner[this.$route.params.id],
         game: null,
-        title: '请转发邀请好友加入游戏',
+        title: '快转发给好友吧！',
         board: {
           width: 0,
           height: 0
@@ -44,27 +49,39 @@
       }
     },
     created() {
-      const { id } = this.$route.params
-      const ws = this.ws = open(`/${id}`)
-      const user = storage.getItem('user')
-
-      if (!user) {
-        this.showRegister = true
-      } else {
-        ws.addEventListener('open', () => this.join(user))
-      }
-
-      ws.addEventListener('message', ({ data }) => {
-        const _data = JSON.parse(data)
-        if (_data.action === 'game') this.game = _data.game
-      })
+      this.initWS()
     },
     methods: {
-      join(user) {
-        this.user = user
-        this.ws.sendJSON({
-          action: 'join',
-          user
+      join() {
+        const { user } = this
+        if (user) {
+          this.ws.sendJSON({
+            action: 'join',
+            user: this.user
+          })
+        } else {
+          this.showRegister = true
+        }
+      },
+      initWS() {
+        const { id } = this.$route.params
+        const ws = this.ws = open(`/${id}`)
+
+        ws.addEventListener('close', () => setTimeout(() => this.initWS(), 500))
+        ws.addEventListener('message', ({ data }) => {
+          const _data = JSON.parse(data)
+          switch (_data.action) {
+            case 'game':
+              this.game = _data.game
+              break
+          }
+        })
+
+        return new Promise((resolve) => {
+          ws.addEventListener('open', () => {
+            this.join()
+            resolve()
+          })
         })
       }
     },
@@ -79,16 +96,11 @@
 </script>
 
 <style lang="scss" scoped>
-  .main {
-    flex: 1;
-  }
-
   .board {
     background: repeating-linear-gradient(90deg, #e8bbcf, #e8bbcf 20px, #f2dee7 20px, #f2dee7 24px, #e8bbcf 24px, #e8bbcf 30px, #f2dee7 30px, #f2dee7 34px);
     display: flex;
     flex: 1;
     flex-direction: column;
-    justify-content: space-between;
 
     .header {
       display: flex;
@@ -104,7 +116,23 @@
       }
     }
 
+    .main {
+      position: relative;
+      .btn-beginning {
+        position: absolute;
+        display: block;
+        margin: 0 auto;
+        width: 200px;
+        height: 40px;
+        background: #d19bb0;
+        color: #fff;
+        font-size: 16px;
+        border-radius: 20px;
+      }
+    }
+
     .players {
+      flex: 1;
       .player {
         display: inline-block;
         margin: 6px 0 0 10px;

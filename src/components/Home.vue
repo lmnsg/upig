@@ -28,7 +28,9 @@
       go() {
         const id = uuid.v1()
         this.$router.push({ name: 'game', params: { id } })
-        storage.setItem('order-' + id, 0)
+        const owner = storage.getItem('owner') || {}
+        owner[id] = 1
+        storage.setItem('owner', owner)
       }
     },
     components: {

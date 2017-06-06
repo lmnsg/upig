@@ -56,7 +56,6 @@
     justify-content: center;
   }
   .register {
-    position: absolute;
     width: 300px;
     border-radius: 4px;
     background: #fff;

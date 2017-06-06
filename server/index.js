@@ -6,14 +6,14 @@ const router = require('./router')
 const ws = require('./ws')
 
 const app = new Koa()
-app.use(bodyParser)
 const server = http.createServer(app.callback())
+
 ws(server)
 
 app
+  .use(bodyParser)
   .use(router.routes())
   .use(router.allowedMethods())
-
-app.on('error', console.error)
+  .on('error', console.error)
 
 server.listen(8000, () => console.log('Listening on:' + server.address().port))
