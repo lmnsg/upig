@@ -1,4 +1,4 @@
-export default class Drew {
+export default class Draw {
   _lineWidth = 2
   _lineColor = 'red'
   _history = []
@@ -7,9 +7,8 @@ export default class Drew {
   _lastY
   _points = []
 
-  constructor ($canvas, ws) {
+  constructor ($canvas) {
     this.$canvas = $canvas
-    this.ws = ws
     this.ctx = $canvas.getContext('2d')
     this.rect = $canvas.getBoundingClientRect()
     this._history.push(this._getImageData())
@@ -41,36 +40,21 @@ export default class Drew {
 
     $canvas.addEventListener('touchstart', ({ touches }) => {
       const { x, y } = getXY(touches[0])
-      this.start(x, y)
-      this.ws.send(JSON.stringify({
-        type: 'start',
-        x,
-        y,
-        width: rect.width
-      }))
+      this.touch(x, y)
     }, { passive: true })
 
     $canvas.addEventListener('touchmove', (e) => {
       e.preventDefault()
       const { x, y } = getXY(e.touches[0])
       this.drawing(x, y)
-      this.ws.send(JSON.stringify({
-        type: 'drawing',
-        x,
-        y,
-        width: rect.width
-      }))
     })
 
     $canvas.addEventListener('touchend', () => {
       this.drawingEnd()
-      this.ws.send(JSON.stringify({
-        type: 'drawingEnd'
-      }))
     }, { passive: true })
   }
 
-  start (x, y) {
+  touch (x, y) {
     const { ctx } = this
     ctx.beginPath()
     ctx.moveTo(x, y)

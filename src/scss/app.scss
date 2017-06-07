@@ -3,6 +3,7 @@
   margin: 0;
   padding: 0;
   box-sizing: border-box;
+  -webkit-tap-highlight-color: rgba(0, 0, 0, 0);
 }
 
 *:before,
@@ -32,4 +33,5 @@ button, input, select, textarea {
   top: 0;
   bottom: 0;
   background: rgba(209, 155, 176, .6);
+  z-index: 9999;
 }

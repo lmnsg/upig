@@ -6,13 +6,16 @@
       <!--<span class="key">猜：</span>-->
     </div>
     <div class="main">
-      <MyCanvas v-if="ws" :ws="ws"></MyCanvas>
-
-      <button class="btn-beginning">开始游戏</button>
+      <MyCanvas v-if="ws" :ws="ws" :game="game" :is-owner="isOwner"></MyCanvas>
+      <div v-show="game.state === 0 || !isOwner" class="shade"></div>
+      <div v-show="game.state === 0">
+        <button v-if="isOwner" @click="beginGame" class="btn-beginning">开始游戏</button>
+        <button v-if="!isOwner" class="btn-beginning">等待房主开始游戏</button>
+      </div>
     </div>
 
     <div v-if="game" class="players">
-      <div class="player" v-for="player in game.players">
+      <div class="player" :class="{ leave: player.state === 'leave' }" v-for="player in game.players">
         <span class="name">{{ player.user.name }}</span>
         <span class="grade">{{ player.grade }}</span>
       </div>
@@ -40,7 +43,7 @@
         showRegister: false,
         user: storage.getItem('user'),
         isOwner: owner && owner[this.$route.params.id],
-        game: null,
+        game: {},
         title: '快转发给好友吧！',
         board: {
           width: 0,
@@ -52,12 +55,18 @@
       this.initWS()
     },
     methods: {
+      beginGame() {
+        this.ws.sendJSON({
+          action: 'beginGame'
+        })
+      },
       join() {
         const { user } = this
         if (user) {
           this.ws.sendJSON({
             action: 'join',
-            user: this.user
+            user: this.user,
+            isOwner: this.isOwner
           })
         } else {
           this.showRegister = true
@@ -73,6 +82,10 @@
           switch (_data.action) {
             case 'game':
               this.game = _data.game
+              break
+
+            case 'beginGame':
+              this.game.state = 1
               break
           }
         })
@@ -101,7 +114,6 @@
     display: flex;
     flex: 1;
     flex-direction: column;
-
     .header {
       display: flex;
       padding: 0 6px;
@@ -118,8 +130,16 @@
 
     .main {
       position: relative;
-      .btn-beginning {
+      .shade {
         position: absolute;
+        left: 0; right: 0; top: 0; bottom: 0;
+        z-index: 2;
+      }
+      .btn-beginning {
+        transform: translate(-50%, -50%);
+        position: absolute;
+        left: 50%;
+        top: 50%;
         display: block;
         margin: 0 auto;
         width: 200px;
@@ -128,6 +148,7 @@
         color: #fff;
         font-size: 16px;
         border-radius: 20px;
+        z-index: 3;
       }
     }
 
@@ -144,6 +165,9 @@
         border-radius: 15px;
         font-size: 12px;
         color: #666;
+      }
+      .player.leave {
+        opacity: .4;
       }
       .grade {
         font-size: 14px;

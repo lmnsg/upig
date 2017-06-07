@@ -7,7 +7,8 @@ exports.Player = class Player {
 
     Object.defineProperty(this, 'ws', {
       value: ws,
-      configurable: false,
+      writable: true,
+      configurable: true,
       enumerable: false
     })
   }

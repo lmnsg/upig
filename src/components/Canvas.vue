@@ -1,7 +1,7 @@
 <template>
   <div class="wrapper">
     <canvas class="canvas" ref="canvas" :width="width" :height="width"></canvas>
-    <div class="tools" :class="{ active2: touchedTolls }" @touchstart="touchTools">
+    <div class="tools" :class="{ active: touchedTolls, transparent: !isOwner }" @touchstart="touchTools">
       <button class="iconfont icon-chexiao" @click="undo" type="button"></button>
       <button class="iconfont icon-chongzuo" @click="redo" type="button"></button>
       <Compact class="picker" v-model="colors"></Compact>
@@ -11,11 +11,11 @@
 
 <script>
   import { Compact } from 'vue-color'
-  import Drew from './Drew'
+  import Draw from './Drew'
 
   export default {
     name: 'Canvas',
-    props: ['ws'],
+    props: ['ws', 'game', 'isOwner'],
     data() {
       return {
         width: window.innerWidth - 8,
@@ -26,19 +26,25 @@
       }
     },
     created() {
-      this.$watch('colors.hex', (hex) => this.drew.setLineStyle({ color: hex }))
+      this.$watch('colors.hex', (hex) => {
+        this.draw.setLineStyle({ color: hex })
+        this.ws.sendJSON({
+          action: 'setLineStyle',
+          data: [{ color: hex }]
+        })
+      })
     },
     methods: {
       undo() {
-        this.drew.undo()
+        this.draw.undo()
         this.ws.send(JSON.stringify({
-          type: 'undo'
+          action: 'undo'
         }))
       },
       redo() {
-        this.drew.redo()
+        this.draw.redo()
         this.ws.send(JSON.stringify({
-          type: 'redo'
+          action: 'redo'
         }))
       },
       touchTools() {
@@ -48,21 +54,51 @@
         this.touchedTollsTimer = setTimeout(() => {
           this.touchedTolls = false
         }, 3000)
+      },
+      listenDraw() {
+        const { ws, draw, $refs: { canvas } } = this
+
+        canvas.addEventListener('touchstart', () => {
+          ws.sendJSON({
+            action: 'touch',
+            args: [draw._lastX, draw._lastY, draw.rect.width]
+          })
+        }, { passive: true })
+
+        canvas.addEventListener('touchmove', () => {
+          ws.sendJSON({
+            action: 'drawing',
+            args: [draw._lastX, draw._lastY, draw.rect.width]
+          })
+        }, { passive: true })
+
+        canvas.addEventListener('touchend', () => {
+          ws.sendJSON({
+            action: 'drawingEnd'
+          })
+        }, { passive: true })
+      },
+      listenWS() {
+        const { ws, draw } = this
+
+        ws.addEventListener('message', ({ data }) => {
+          const { action, args } = JSON.parse(data)
+          const fn = draw[action]
+          if (['touch', 'drawing'].indexOf(action) > -1) {
+            const scale = draw.rect.width / args.pop()
+            return fn.apply(draw, args.map((arg) => arg * scale))
+          }
+
+          fn && fn.apply(draw, args)
+        })
       }
     },
     mounted() {
-      const drew = this.drew = new Drew(this.$refs.canvas, this.ws)
-      this.ws.onmessage = ({ data }) => {
-        const { type, x, y, width } = JSON.parse(data)
-        let scale = 1
-
-        if (width) {
-          scale = this.rect.width / width
-        }
-
-        drew[type] && drew[type](x * scale, y * scale)
-      }
-      drew.setLineStyle({ color: this.colors.hex })
+      const { $refs: { canvas } } = this
+      const draw = this.draw = new Draw(canvas)
+      this.listenDraw()
+      this.listenWS()
+      draw.setLineStyle({ color: this.colors.hex })
     },
     components: {
       Compact
@@ -91,9 +127,7 @@
     opacity: .3;
     transition: opacity .6s;
     -webkit-transform: translate3d(0, 0, 0);
-    &.active2 {
-      opacity: 1;
-    }
+
     .picker {
       width: 202px;
       height: 25px;
@@ -108,6 +142,14 @@
       color: #d19bb0;
       font-size: 24px;
     }
+  }
+
+  .tools.transparent {
+    opacity: 0;
+  }
+
+  .tools.active {
+    opacity: 1;
   }
 
 </style>
