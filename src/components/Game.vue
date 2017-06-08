@@ -6,7 +6,7 @@
       <!--<span class="key">猜：</span>-->
     </div>
     <div class="main">
-      <MyCanvas v-if="ws" :ws="ws" :game="game" :is-owner="isOwner"></MyCanvas>
+      <MyCanvas ref="$canvas" v-if="ws" :ws="ws" :game="game" :is-owner="isOwner"></MyCanvas>
       <div v-show="game.state === 0 || !isOwner" class="shade"></div>
       <div v-show="game.state === 0">
         <button v-if="isOwner" @click="beginGame" class="btn-beginning">开始游戏</button>
@@ -78,15 +78,25 @@
 
         ws.addEventListener('close', () => setTimeout(() => this.initWS(), 500))
         ws.addEventListener('message', ({ data }) => {
-          const _data = JSON.parse(data)
-          switch (_data.action) {
+          const { action, args, game } = JSON.parse(data)
+          switch (action) {
             case 'game':
-              this.game = _data.game
+              this.game = game
               break
 
             case 'beginGame':
               this.game.state = 1
               break
+
+            default:
+              const draw = this.$refs.$canvas.draw
+              const fn = draw[action]
+              if (['touch', 'drawing'].indexOf(action) > -1) {
+                const scale = draw.rect.width / args.pop()
+                return fn.apply(draw, args.map((arg) => arg * scale))
+              }
+
+              fn && fn.apply(draw, args)
           }
         })
 

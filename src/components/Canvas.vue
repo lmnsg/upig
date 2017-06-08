@@ -11,7 +11,7 @@
 
 <script>
   import { Compact } from 'vue-color'
-  import Draw from './Drew'
+  import Draw from './Draw'
 
   export default {
     name: 'Canvas',
@@ -30,7 +30,7 @@
         this.draw.setLineStyle({ color: hex })
         this.ws.sendJSON({
           action: 'setLineStyle',
-          data: [{ color: hex }]
+          args: [{ color: hex }]
         })
       })
     },
@@ -56,48 +56,33 @@
         }, 3000)
       },
       listenDraw() {
-        const { ws, draw, $refs: { canvas } } = this
+        const { draw, $refs: { canvas } } = this
 
         canvas.addEventListener('touchstart', () => {
-          ws.sendJSON({
+          this.ws.sendJSON({
             action: 'touch',
             args: [draw._lastX, draw._lastY, draw.rect.width]
           })
         }, { passive: true })
 
         canvas.addEventListener('touchmove', () => {
-          ws.sendJSON({
+          this.ws.sendJSON({
             action: 'drawing',
             args: [draw._lastX, draw._lastY, draw.rect.width]
           })
         }, { passive: true })
 
         canvas.addEventListener('touchend', () => {
-          ws.sendJSON({
+          this.ws.sendJSON({
             action: 'drawingEnd'
           })
         }, { passive: true })
-      },
-      listenWS() {
-        const { ws, draw } = this
-
-        ws.addEventListener('message', ({ data }) => {
-          const { action, args } = JSON.parse(data)
-          const fn = draw[action]
-          if (['touch', 'drawing'].indexOf(action) > -1) {
-            const scale = draw.rect.width / args.pop()
-            return fn.apply(draw, args.map((arg) => arg * scale))
-          }
-
-          fn && fn.apply(draw, args)
-        })
       }
     },
     mounted() {
       const { $refs: { canvas } } = this
       const draw = this.draw = new Draw(canvas)
       this.listenDraw()
-      this.listenWS()
       draw.setLineStyle({ color: this.colors.hex })
     },
     components: {

@@ -19,14 +19,6 @@ module.exports = (server) => {
       const data = JSON.parse(message)
 
       switch (data.action) {
-        case 'drawing':
-        case 'start':
-        case 'drawingEnd':
-          const other = new Set(clients)
-          other.delete(ws)
-          other.forEach(ws => ws.send(message))
-          break
-
         case 'join':
           if (!game || !data) return
           const { players } = game
@@ -56,6 +48,9 @@ module.exports = (server) => {
           game.state = 1
           broadcaster({ action: 'beginGame' })
           break
+
+        default:
+          broadcaster(data)
       }
     })
 
