@@ -11,9 +11,8 @@ const server = http.createServer(app.callback())
 ws(server)
 
 app
-  .use(bodyParser)
+  .use(bodyParser())
   .use(router.routes())
   .use(router.allowedMethods())
-  .on('error', console.error)
 
 server.listen(8000, () => console.log('Listening on:' + server.address().port))

@@ -2,6 +2,9 @@
   <div class="wrapper">
     <canvas class="canvas" ref="canvas" :width="width" :height="width"></canvas>
     <div class="tools" :class="{ active: touchedTolls, transparent: !isOwner }" @touchstart="touchTools">
+      <div class="nib">
+        <span></span>
+      </div>
       <button class="iconfont icon-chexiao" @click="undo" type="button"></button>
       <button class="iconfont icon-chongzuo" @click="redo" type="button"></button>
       <Compact class="picker" v-model="colors"></Compact>
@@ -109,9 +112,20 @@
     margin-top: -30px;
     padding: 0 6px;
     height: 30px;
-    opacity: .3;
+    opacity: 1;
     transition: opacity .6s;
     -webkit-transform: translate3d(0, 0, 0);
+
+    .nib {
+      font-size: 0;
+      span {
+        display: inline-block;
+        width: 4px;
+        height: 4px;
+        background: red;
+        border-radius: 50%;
+      }
+    }
 
     .picker {
       width: 202px;

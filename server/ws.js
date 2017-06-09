@@ -3,7 +3,6 @@ const { games, Game, Player } = require('./Game')
 
 module.exports = (server) => {
   const wss = new WebSocket.Server({ server })
-  const clients = wss.clients
 
   wss.on('connection', (ws, { url }) => {
     const uuid = url.slice(url.lastIndexOf('/') + 1)
