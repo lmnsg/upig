@@ -3,9 +3,8 @@
     <div class="header">
       <div class="counter"></div>
       <div class="key">{{ title }}</div>
-      <!--<span class="key">猜：</span>-->
     </div>
-    <div class="main">
+    <div class="main" v-if="game">
       <MyCanvas ref="$canvas" v-if="ws" :ws="ws" :game="game" :is-owner="isOwner"></MyCanvas>
       <div v-show="game.state === 0 || !isOwner" class="shade"></div>
       <div v-show="game.state === 0">
@@ -43,12 +42,22 @@
         showRegister: false,
         user: storage.getItem('user'),
         isOwner: owner && owner[this.$route.params.id],
-        game: {},
-        title: '快转发给好友吧！',
+        game: null,
         board: {
           width: 0,
           height: 0
         }
+      }
+    },
+    computed: {
+      title() {
+        const { game, isOwner } = this
+
+        if (!game || game.state === 0) return '快转发给好友吧！'
+
+        const { spend, word } = game
+
+        return isOwner ? `我画: ${word.value}` : ` 提示: ${spend > 15 ? word.type : word.value.length + '个字'}`
       }
     },
     created() {

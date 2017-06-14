@@ -2,12 +2,21 @@
   <div class="wrapper">
     <canvas class="canvas" ref="canvas" :width="width" :height="width"></canvas>
     <div class="tools" :class="{ active: touchedTolls, transparent: !isOwner }" @touchstart="touchTools">
-      <div class="nib">
-        <span></span>
+      <div class="row">
+        <button class="iconfont icon-clear clean" @click="clear"></button>
+        <div class="nibs">
+          <div class="nib-wrap" v-for="(nib, index) in nibs" @click="activeNibIndex = index">
+          <span :class="{ active: index === activeNibIndex }"
+                :style="{ width: nib * 2 + 'px', height: nib * 2 + 'px', background: colors.hex }">
+          </span>
+          </div>
+        </div>
       </div>
-      <button class="iconfont icon-chexiao" @click="undo" type="button"></button>
-      <button class="iconfont icon-chongzuo" @click="redo" type="button"></button>
-      <Compact class="picker" v-model="colors"></Compact>
+      <div class="row">
+        <button class="iconfont icon-chexiao" @click="undo" type="button"></button>
+        <button class="iconfont icon-chongzuo" @click="redo" type="button"></button>
+        <Compact class="picker" v-model="colors"></Compact>
+      </div>
     </div>
   </div>
 </template>
@@ -25,6 +34,8 @@
         colors: {
           hex: '#4d4d4d'
         },
+        nibs: [2, 4, 6, 8],
+        activeNibIndex: 0,
         touchedTolls: false
       }
     },
@@ -36,8 +47,15 @@
           args: [{ color: hex }]
         })
       })
+      this.$watch('activeNibIndex', (index) => this.draw.setLineStyle({ width: this.nibs[index] }))
     },
     methods: {
+      clear() {
+        const clear = window.confirm('清空画布咯?')
+        if (clear) {
+          this.draw.clean()
+        }
+      },
       undo() {
         this.draw.undo()
         this.ws.send(JSON.stringify({
@@ -108,29 +126,61 @@
 
   .tools {
     position: relative;
-    display: flex;
-    margin-top: -30px;
+    margin-top: -60px;
     padding: 0 6px;
-    height: 30px;
+    height: 60px;
     opacity: 1;
     transition: opacity .6s;
     -webkit-transform: translate3d(0, 0, 0);
 
-    .nib {
+    .row {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+    .clean {
+    }
+    .nibs {
+      flex: 1;
       font-size: 0;
-      span {
+      width: 100px;
+      text-align: right;
+      .nib-wrap {
         display: inline-block;
+        width: 20px;
+        height: 20px;
+        vertical-align: middle;
+        line-height: 20px;
+      }
+
+      span {
+        position: relative;
+        display: inline-block;
+        margin-left: 4px;
         width: 4px;
         height: 4px;
-        background: red;
         border-radius: 50%;
+      }
+      span.active {
+        &::after {
+          content: '';
+          position: absolute;
+          left: 50%;
+          top: 50%;
+          width: 100%;
+          height: 100%;
+          background: #fff;
+          transform: scale(.5) translate(-100%, -100%);
+          border-radius: 50%;
+        }
+
       }
     }
 
     .picker {
       width: 202px;
       height: 25px;
-      margin: 0 0 0 auto;
+      margin: -5px 0 0 auto;
       box-shadow: none;
       overflow: hidden;
     }

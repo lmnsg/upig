@@ -1,3 +1,4 @@
+require('babel-register')
 const Koa = require('koa')
 const bodyParser = require('koa-bodyparser')
 const http = require('http')

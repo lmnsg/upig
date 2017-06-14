@@ -45,7 +45,9 @@ module.exports = (server) => {
 
         case 'beginGame':
           game.state = 1
-          broadcaster({ action: 'beginGame' })
+          game.drawer = getFirstDrawerByRandom(game.players)
+          game.getWord()
+          broadcaster({ action: 'beginGame', game })
           break
 
         default:
@@ -80,4 +82,8 @@ function send (ws, data) {
     if (key === 'queue') return Array.from(val)
     return val
   }))
+}
+
+function getFirstDrawerByRandom(players) {
+  return Math.floor(Math.random() * players.length)
 }

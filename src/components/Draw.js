@@ -93,16 +93,20 @@ export default class Draw {
     this._points = []
   }
 
-  clear () {
+  _clear () {
     const { ctx, rect } = this
     ctx.clearRect(0, 0, rect.width, rect.height)
   }
 
+  clean() {
+    this._history.push(this._getImageData())
+    this._clear()
+  }
+
   undo () {
     const { ctx, _history, _redoQueue } = this
-    this.clear()
+    this._clear()
     if (_history.length > 1) {
-
       _redoQueue.push(_history.pop())
       ctx.putImageData(_history[_history.length - 1], 0, 0)
     }
@@ -112,7 +116,7 @@ export default class Draw {
     const { ctx, _history, _redoQueue } = this
 
     if (_redoQueue.length) {
-      this.clear()
+      this._clear()
       ctx.putImageData(_redoQueue[_redoQueue.length - 1], 0, 0)
       _history.push(_redoQueue.pop())
     }
