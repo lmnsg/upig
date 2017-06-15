@@ -47,7 +47,16 @@ module.exports = (server) => {
           game.state = 1
           game.drawer = getFirstDrawerByRandom(game.players)
           game.getWord()
-          broadcaster({ action: 'beginGame', game })
+          broadcaster({ action: 'game', game })
+          setTimeout(() => {
+            game.pointOut = true
+            broadcaster({ action: 'game', game })
+          }, 15000)
+
+          setTimeout(() => {
+            game.state = 2
+            broadcaster({ action: 'game', game })
+          }, game.totalTimes * 1000)
           break
 
         default:
@@ -84,6 +93,6 @@ function send (ws, data) {
   }))
 }
 
-function getFirstDrawerByRandom(players) {
+function getFirstDrawerByRandom (players) {
   return Math.floor(Math.random() * players.length)
 }

@@ -19,9 +19,11 @@ exports.Player = class Player {
 exports.Game = class Game {
   constructor () {
     this.state = 0
+    this.totalTimes = 90
     this.players = []
     this.drawer = 0
     this.imageData = null
+    this.pointOut = false
     this._words = []
     this.words = []
     this.word = ''

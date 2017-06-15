@@ -55,9 +55,9 @@
 
         if (!game || game.state === 0) return '快转发给好友吧！'
 
-        const { spend, word } = game
-
-        return isOwner ? `我画: ${word.value}` : ` 提示: ${spend > 15 ? word.type : word.value.length + '个字'}`
+        const { pointOut, word } = game
+        const { type, value } = word
+        return isOwner ? `我画: ${value}` : `提示: ${pointOut ? `${type}, ${value.length}个字` : word.value.length + '个字'}`
       }
     },
     created() {
@@ -70,7 +70,7 @@
         })
       },
       join() {
-        const { user } = this
+        const user = this.user = storage.getItem('user')
         if (user) {
           this.ws.sendJSON({
             action: 'join',
@@ -91,10 +91,6 @@
           switch (action) {
             case 'game':
               this.game = game
-              break
-
-            case 'beginGame':
-              this.game.state = 1
               break
 
             default:

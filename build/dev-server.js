@@ -5,6 +5,7 @@ if (!process.env.NODE_ENV) {
   process.env.NODE_ENV = JSON.parse(config.dev.env.NODE_ENV)
 }
 
+var ip = require('ip')
 var opn = require('opn')
 var path = require('path')
 var express = require('express')
@@ -51,7 +52,7 @@ Object.keys(proxyTable).forEach(function (context) {
 })
 
 const wsProxy = proxyMiddleware('/ws', {
-  target: 'http://localhost:8000',
+  target: `http://${ip.address()}:8000`,
   changeOrigin: true,                     // for vhosted sites, changes host header to match to target's host
   ws: true,                               // enable websocket proxy
   logLevel: 'debug'
@@ -74,7 +75,7 @@ app.use(hotMiddleware)
 var staticPath = path.posix.join(config.dev.assetsPublicPath, config.dev.assetsSubDirectory)
 app.use(staticPath, express.static('./static'))
 
-var uri = 'http://localhost:' + port
+var uri = `http://${ip.address()}:${port}`
 
 var _resolve
 var readyPromise = new Promise(resolve => {
