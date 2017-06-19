@@ -5,8 +5,8 @@
       <div class="key">{{ title }}</div>
     </div>
     <div class="main" v-if="game">
-      <MyCanvas ref="$canvas" v-if="ws" :ws="ws" :game="game" :is-owner="isOwner"></MyCanvas>
-      <div v-show="game.state === 0 || !isOwner" class="shade"></div>
+      <MyCanvas ref="$canvas" v-if="ws" :ws="ws" :game="game" :is-drawer="isDrawer"></MyCanvas>
+      <div v-show="game.state === 0 || !isDrawer" class="shade"></div>
       <div v-show="game.state === 0">
         <button v-if="isOwner" @click="beginGame" class="btn-beginning">开始游戏</button>
         <button v-if="!isOwner" class="btn-beginning">等待房主开始游戏</button>
@@ -20,9 +20,10 @@
       </div>
     </div>
 
-    <div class="footer">
-      <input class="chat-input" type="text">
-    </div>
+    <form class="footer" @submit.prevent="submitGuess">
+      <input v-model="guess" placeholder="第一个猜中的人可获得5分" class="chat-input" type="text">
+      <button type="submit"></button>
+    </form>
     <div class="table"></div>
     <Register @done="join" v-model="showRegister"></Register>
   </div>
@@ -46,24 +47,36 @@
         board: {
           width: 0,
           height: 0
-        }
+        },
+        guess: ''
       }
     },
     computed: {
+      isDrawer() {
+        const { drawer, players } = this.game
+        return players[drawer].user.name === this.user.name
+      },
       title() {
-        const { game, isOwner } = this
+        const { game } = this
 
         if (!game || game.state === 0) return '快转发给好友吧！'
 
         const { pointOut, word } = game
         const { type, value } = word
-        return isOwner ? `我画: ${value}` : `提示: ${pointOut ? `${type}, ${value.length}个字` : word.value.length + '个字'}`
+        return this.isDrawer ? `我画: ${value}` : `提示: ${pointOut ? `${type}, ${value.length}个字` : word.value.length + '个字'}`
       }
     },
     created() {
       this.initWS()
     },
     methods: {
+      submitGuess() {
+        this.ws.sendJSON({
+          action: 'guess',
+          guess: this.guess
+        })
+        this.guess = ''
+      },
       beginGame() {
         this.ws.sendJSON({
           action: 'beginGame'
@@ -94,6 +107,7 @@
               break
 
             default:
+              if (this.isDrawer) return
               const draw = this.$refs.$canvas.draw
               const fn = draw[action]
               if (['touch', 'drawing'].indexOf(action) > -1) {

@@ -1,7 +1,7 @@
 <template>
   <div class="wrapper">
     <canvas class="canvas" ref="canvas" :width="width" :height="width"></canvas>
-    <div class="tools" :class="{ active: touchedTolls, transparent: !isOwner }" @touchstart="touchTools">
+    <div class="tools" :class="{ active: touchedTolls, transparent: !isDrawer }" @touchstart="touchTools">
       <div class="row">
         <button class="iconfont icon-clear clean" @click="clear"></button>
         <div class="nibs">
@@ -27,7 +27,7 @@
 
   export default {
     name: 'Canvas',
-    props: ['ws', 'game', 'isOwner'],
+    props: ['ws', 'game', 'isDrawer'],
     data() {
       return {
         width: window.innerWidth - 8,
@@ -47,7 +47,13 @@
           args: [{ color: hex }]
         })
       })
-      this.$watch('activeNibIndex', (index) => this.draw.setLineStyle({ width: this.nibs[index] }))
+      this.$watch('activeNibIndex', (index) => {
+        this.draw.setLineStyle({ width: this.nibs[index] })
+        this.ws.sendJSON({
+          action: 'setLineStyle',
+          args: [{ width: this.nibs[index] }]
+        })
+      })
     },
     methods: {
       clear() {
@@ -55,6 +61,9 @@
         if (clear) {
           this.draw.clean()
         }
+        this.ws.sendJSON({
+          action: 'clean'
+        })
       },
       undo() {
         this.draw.undo()

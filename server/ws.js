@@ -18,10 +18,10 @@ module.exports = (server) => {
       const data = JSON.parse(message)
 
       switch (data.action) {
-        case 'join':
+        case 'join': {
           if (!game || !data) return
           const { players } = game
-          const { user } = data
+          const user = data.user
 
           let exist = players.findIndex(({ user: { name } }) => user.name === name)
 
@@ -42,11 +42,10 @@ module.exports = (server) => {
 
           broadcaster({ action: 'game', game })
           break
+        }
 
         case 'beginGame':
-          game.state = 1
-          game.drawer = getFirstDrawerByRandom(game.players)
-          game.getWord()
+          game.begin()
           broadcaster({ action: 'game', game })
           setTimeout(() => {
             game.pointOut = true
@@ -59,6 +58,16 @@ module.exports = (server) => {
           }, game.totalTimes * 1000)
           break
 
+        case 'guess':
+          const guess = data.guess
+          const user = 0
+          // const user = game.findPlayerByWs(ws).user
+          if (guess === game.word.value) {
+            broadcaster({ action: 'right', user, score: 5 })
+          } else {
+            broadcaster({ action: 'guess', user, guess })
+          }
+          break
         default:
           broadcaster(data)
       }
@@ -93,6 +102,4 @@ function send (ws, data) {
   }))
 }
 
-function getFirstDrawerByRandom (players) {
-  return Math.floor(Math.random() * players.length)
-}
+
