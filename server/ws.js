@@ -1,5 +1,5 @@
 const WebSocket = require('ws')
-const { games, Game, Player } = require('./Game')
+const { games, Game, Player, State } = require('./Game')
 
 module.exports = (server) => {
   const wss = new WebSocket.Server({ server })
@@ -50,22 +50,28 @@ module.exports = (server) => {
           setTimeout(() => {
             game.pointOut = true
             broadcaster({ action: 'game', game })
-          }, 15000)
-
-          setTimeout(() => {
-            game.state = 2
-            broadcaster({ action: 'game', game })
-          }, game.totalTimes * 1000)
+          }, 15 * 1000)
+          game.roundTimer = setTimeout(() => game.nextRound(), 90 * 1000)
           break
 
         case 'guess':
           const guess = data.guess
-          const user = 0
-          // const user = game.findPlayerByWs(ws).user
+          const user = game.findPlayerByWs(ws).user
+
           if (guess === game.word.value) {
-            broadcaster({ action: 'right', user, score: 5 })
+            // 猜对加分
+            const roundScore = game.players.length - game.right
+            user.score += roundScore
+            game.right++
+            broadcaster({ action: 'message', user, text: `猜对了! +${roundScore}分` })
+
+            if (game.right >= game.players.length) {
+              clearTimeout(game.roundTimer)
+              game.nextRound()
+            }
           } else {
-            broadcaster({ action: 'guess', user, guess })
+            // 广播猜错的词
+            broadcaster({ action: 'message', user, text: guess })
           }
           break
         default:
@@ -75,12 +81,12 @@ module.exports = (server) => {
 
     ws.on('close', () => {
       const players = game.players
-      const i = players.findIndex((player) => player.ws === ws)
-      if (i > -1) {
-        if (game.state === 0) {
-          players.splice(i, 1)
+      const index = players.findIndex((player) => player.ws === ws)
+      if (index > -1) {
+        if (game.state === State.WAITING) {
+          players.splice(index, 1)
         } else {
-          players[i].state = 'leave'
+          players[index].state = 'leave'
         }
       }
 
@@ -101,5 +107,3 @@ function send (ws, data) {
     return val
   }))
 }
-
-

@@ -16,6 +16,12 @@ exports.Player = class Player {
   }
 }
 
+export const State = {
+  WAITING: 0,
+  BEGINNING: 1,
+  TERMINATING: 2
+}
+
 exports.Game = class Game {
   constructor () {
     this.state = 0
@@ -28,21 +34,11 @@ exports.Game = class Game {
     this._words = []
     this.words = []
     this.word = ''
+    this.right = 0
 
-    Object.defineProperties(this, {
-      _words: {
-        value: [],
-        writable: true,
-        configurable: true,
-        enumerable: false
-      },
-      words: {
-        value: [],
-        writable: true,
-        configurable: true,
-        enumerable: false
-      }
-    })
+    makeEnumerable('_words', this, [])
+    makeEnumerable('words', this, [])
+    makeEnumerable('roundTimer', this, null)
   }
 
   getWord () {
@@ -56,7 +52,7 @@ exports.Game = class Game {
     return this.players.find((player) => ws === player.ws)
   }
 
-  nextDrawer() {
+  nextDrawer () {
     if (this.drawer >= this.players.length - 1) {
       this.drawer = 0
     } else {
@@ -65,10 +61,13 @@ exports.Game = class Game {
     return this
   }
 
-  /**
-   * 生成 drawer 队列
-   * @returns {Game}
-   */
+  nextRound () {
+    this
+      .nextDrawer()
+      .getWord()
+    this.right = 0
+  }
+
   getFirstDrawer () {
     const { players } = this
     this.drawer = Math.floor(Math.random() * players.length)
@@ -76,9 +75,23 @@ exports.Game = class Game {
   }
 
   begin () {
-    this.genDrawerOrder()
-      .getDrawer()
+    this.getFirstDrawer()
       .getWord()
       .state = 1
   }
+}
+
+/**
+ * 不可枚举
+ * @param prop
+ * @param target
+ * @param value
+ */
+function makeEnumerable(prop, target, value) {
+  Object.defineProperty(target, prop, {
+    value,
+    writable: true,
+    configurable: true,
+    enumerable: false
+  })
 }

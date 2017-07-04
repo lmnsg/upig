@@ -8,7 +8,9 @@
       <MyCanvas ref="$canvas" v-if="ws" :ws="ws" :game="game" :is-drawer="isDrawer"></MyCanvas>
       <div v-show="game.state === 0 || !isDrawer" class="shade"></div>
       <div v-show="game.state === 0">
-        <button v-if="isOwner" @click="beginGame" class="btn-beginning">开始游戏</button>
+        <button v-if="isOwner" @click="beginGame" class="btn-beginning">
+          {{ game.players.length > 1 ? '开始游戏' : '等待玩家加入' }}
+        </button>
         <button v-if="!isOwner" class="btn-beginning">等待房主开始游戏</button>
       </div>
     </div>
@@ -20,9 +22,13 @@
       </div>
     </div>
 
+    <div class="messages-box">
+      <p v-for="msg in messages">{{ msg.user.name }}: {{ msg.text }}</p>
+    </div>
+
     <form class="footer" @submit.prevent="submitGuess">
       <input v-model="guess" placeholder="第一个猜中的人可获得5分" class="chat-input" type="text">
-      <button type="submit"></button>
+      <button class="send-guess" type="submit">发送</button>
     </form>
     <div class="table"></div>
     <Register @done="join" v-model="showRegister"></Register>
@@ -48,12 +54,15 @@
           width: 0,
           height: 0
         },
-        guess: ''
+        guess: '',
+        messages: []
       }
     },
     computed: {
       isDrawer() {
+        if (!this.game) return
         const { drawer, players } = this.game
+        if (!players[drawer]) return
         return players[drawer].user.name === this.user.name
       },
       title() {
@@ -100,10 +109,15 @@
 
         ws.addEventListener('close', () => setTimeout(() => this.initWS(), 500))
         ws.addEventListener('message', ({ data }) => {
-          const { action, args, game } = JSON.parse(data)
+          const _parseData = JSON.parse(data)
+          const { action, args, game } = _parseData
           switch (action) {
             case 'game':
               this.game = game
+              break
+
+            case 'message':
+              this.messages.push(_parseData)
               break
 
             default:
@@ -182,7 +196,6 @@
     }
 
     .players {
-      flex: 1;
       .player {
         display: inline-block;
         margin: 6px 0 0 10px;
@@ -203,6 +216,16 @@
         color: #d19bb0;
       }
     }
+    .messages-box {
+      margin: 10px 6px;
+      padding: 6px 10px;
+      flex: 1;
+      font-size: 12px;
+      border-radius: 4px;
+      background: rgba(255,255,255, .5);
+      color: #646464;
+      overflow-y: scroll;
+    }
 
     .footer {
       display: flex;
@@ -219,6 +242,11 @@
         border-radius: 2px;
         flex: 2;
         font-size: 14px;
+      }
+      .send-guess {
+        margin-left: 20px;
+        font-size: 14px;
+        color: #fff;
       }
     }
   }
