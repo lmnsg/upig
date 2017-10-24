@@ -89,6 +89,7 @@
         const { draw, $refs: { canvas } } = this
 
         canvas.addEventListener('touchstart', () => {
+          clearTimeout(this.sendTimer)
           this.ws.sendJSON({
             action: 'touch',
             args: [draw._lastX, draw._lastY, draw.rect.width]

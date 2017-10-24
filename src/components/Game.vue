@@ -1,24 +1,29 @@
 <template>
   <div class="board">
     <div class="header">
-      <div class="counter"></div>
-      <div class="key">{{ title }}</div>
+      <div v-show="roundTime && game.state === 'playing'" class="counter">{{ roundTime }}</div>
+      <MyTitle :game="game"></MyTitle>
     </div>
     <div class="main" v-if="game">
       <MyCanvas ref="$canvas" v-if="ws" :ws="ws" :game="game" :is-drawer="isDrawer"></MyCanvas>
-      <div v-show="game.state === 0 || !isDrawer" class="shade"></div>
-      <div v-show="game.state === 0">
+      <div v-show="showShade" class="shade"></div>
+      <div v-show="game.state === 'ready'">
         <button v-if="isOwner" @click="beginGame" class="btn-beginning">
           {{ game.players.length > 1 ? '开始游戏' : '等待玩家加入' }}
         </button>
         <button v-if="!isOwner" class="btn-beginning">等待房主开始游戏</button>
       </div>
+      <div class="round" v-show="showRound">
+        第{{game.round.index}}回合
+      </div>
+      <RoundEnd v-if="game.state === 'roundEnd'" :game="game"></RoundEnd>
+      <GameEnd v-if="game.state === 'end'" :game="game"></GameEnd>
     </div>
 
     <div v-if="game" class="players">
       <div class="player" :class="{ leave: player.state === 'leave' }" v-for="player in game.players">
         <span class="name">{{ player.user.name }}</span>
-        <span class="grade">{{ player.grade }}</span>
+        <span class="grade">{{ player.score }}</span>
       </div>
     </div>
 
@@ -27,59 +32,87 @@
     </div>
 
     <form class="footer" @submit.prevent="submitGuess">
-      <input v-model="guess" placeholder="第一个猜中的人可获得5分" class="chat-input" type="text">
+      <input v-model="guess" :placeholder="isDrawer ? '不可提示哦' : '第一个猜中的人可获得5分'" class="chat-input" type="text">
       <button class="send-guess" type="submit">发送</button>
     </form>
     <div class="table"></div>
     <Register @done="join" v-model="showRegister"></Register>
+
+    <div class="rank" v-show="showRank">
+
+    </div>
   </div>
 </template>
 
 <script>
   import Canvas from './Canvas.vue'
   import Register from './sub/Register.vue'
+  import RoundEnd from './sub/RoundEnd.vue'
   import { open } from '../client'
   import { storage } from '../util'
+  import bus from '../bus'
 
   export default {
     data() {
       const owner = storage.getItem('owner')
       return {
         ws: null,
+        showRound: false,
         showRegister: false,
+        showRank: false,
         user: storage.getItem('user'),
         isOwner: owner && owner[this.$route.params.id],
         game: null,
+        counter: 0,
         board: {
           width: 0,
           height: 0
         },
         guess: '',
+        roundTime: 0,
         messages: []
       }
     },
     computed: {
       isDrawer() {
         if (!this.game) return
-        const { drawer, players } = this.game
-        if (!players[drawer]) return
-        return players[drawer].user.name === this.user.name
+        const { round, players } = this.game
+        if (!players[round.drawer]) return
+        return players[round.drawer].user.name === this.user.name
       },
-      title() {
-        const { game } = this
-
-        if (!game || game.state === 0) return '快转发给好友吧！'
-
-        const { pointOut, word } = game
-        const { type, value } = word
-        return this.isDrawer ? `我画: ${value}` : `提示: ${pointOut ? `${type}, ${value.length}个字` : word.value.length + '个字'}`
+      showShade() {
+        return this.game.state === 'playing' ? !this.isDrawer : true
+      }
+    },
+    watch: {
+      'game.state'(state, old) {
+        if (state === old) return
+        this[state] && this[state]()
+      },
+      'game.round.index'(round, old) {
+        if (!round || round === old || this.game.state !== 'playing') return
+        this.showRound = true
+        setTimeout(() => this.showRound = false, 1000)
       }
     },
     created() {
       this.initWS()
     },
     methods: {
+      playing() {
+        const $canvas = this.$refs.$canvas
+        $canvas.draw.clean()
+        this.messages = []
+        this.ws.sendJSON({
+          action: 'setLineStyle',
+          args: [{ color: $canvas.colors.hex }, { width: $canvas.nibs[$canvas.activeNibIndex] }]
+        })
+      },
+      end() {
+        this.showRank = true
+      },
       submitGuess() {
+        if (this.isDrawer) return
         this.ws.sendJSON({
           action: 'guess',
           guess: this.guess
@@ -109,27 +142,40 @@
 
         ws.addEventListener('close', () => setTimeout(() => this.initWS(), 500))
         ws.addEventListener('message', ({ data }) => {
-          const _parseData = JSON.parse(data)
-          const { action, args, game } = _parseData
+          const msg = JSON.parse(data)
+          const { action, game } = msg
+
+          const doDraw = ({ action, args }) => {
+            const draw = this.$refs.$canvas.draw
+            const fn = draw[action]
+            if (['touch', 'drawing'].indexOf(action) > -1) {
+              const scale = draw.rect.width / args.pop()
+              return fn.apply(draw, args.map((arg) => arg * scale))
+            }
+            fn && fn.apply(draw, args)
+          }
+
           switch (action) {
             case 'game':
               this.game = game
               break
 
-            case 'message':
-              this.messages.push(_parseData)
+            case 'counting':
+              this.roundTime = msg.time
+              break
+
+            case 'guess':
+              this.messages.push(msg)
+              break
+
+            case 'restore':
+              const { history } = msg
+              history.forEach((step) => doDraw(step))
               break
 
             default:
               if (this.isDrawer) return
-              const draw = this.$refs.$canvas.draw
-              const fn = draw[action]
-              if (['touch', 'drawing'].indexOf(action) > -1) {
-                const scale = draw.rect.width / args.pop()
-                return fn.apply(draw, args.map((arg) => arg * scale))
-              }
-
-              fn && fn.apply(draw, args)
+              doDraw(msg)
           }
         })
 
@@ -143,10 +189,15 @@
     },
     mounted() {
       this.board.height = this.board.width = window.innerWidth
+      bus.$on('vote', (type) => this.ws.sendJSON({ action: 'vote', type }))
     },
     components: {
       MyCanvas: Canvas,
-      Register
+      MyTitle: require('./sub/Title.vue'),
+      Register,
+      RoundEnd,
+      GameEnd: require('./sub/GameEnd.vue'),
+      Dialog: require('./sub/Dialog.vue')
     }
   }
 </script>
@@ -167,7 +218,14 @@
         text-align: center;
         line-height: 40px;
         color: #fff;
-        font-size: 20px;
+        font-size: 16px;
+      }
+      .counter {
+        position: absolute;
+        left: 10px;
+        color: yellow;
+        line-height: 40px;
+        text-align: center;
       }
     }
 
@@ -222,7 +280,7 @@
       flex: 1;
       font-size: 12px;
       border-radius: 4px;
-      background: rgba(255,255,255, .5);
+      background: rgba(255, 255, 255, .5);
       color: #646464;
       overflow-y: scroll;
     }
@@ -248,6 +306,14 @@
         font-size: 14px;
         color: #fff;
       }
+    }
+    .round {
+      position: absolute;
+      left: 50%;
+      top: 30%;
+      transform: translate(-50%, 0);
+      font: 24px STKaiti;
+      color: #d19bb0;
     }
   }
 </style>

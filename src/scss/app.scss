@@ -24,6 +24,8 @@ button, input, select, textarea {
   box-shadow: none;
   background: none;
   border: none;
+  outline: none;
+  font-family: inherit;
 }
 
 .popup {
@@ -34,4 +36,8 @@ button, input, select, textarea {
   bottom: 0;
   background: rgba(209, 155, 176, .6);
   z-index: 9999;
+}
+
+.title {
+  color: #d19bb0;
 }
