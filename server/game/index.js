@@ -5,7 +5,7 @@ import { def, delay } from '../../util/shared'
 import WordPool from '../word'
 
 export class Game {
-  static time = 10
+  static time = 90
 
   constructor() {
     this.state = 'ready'

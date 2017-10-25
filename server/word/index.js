@@ -1,4 +1,7 @@
-import words from '../word/db.json'
+const fs = require('fs')
+const path = require('path')
+
+const words = fs.readFileSync(path.resolve(__dirname, './db.txt')).toString().split(' ').map((value) => ({ value, type: '' }))
 
 export default class Words {
   constructor () {
