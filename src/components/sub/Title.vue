@@ -9,9 +9,15 @@
 
         const { pointOut, word } = game.round
         const { type, value } = word
-        return $parent.isDrawer
-          ? `我画: ${value}`
-          : `提示: ${pointOut ? `${type}, ${value.length}个字` : word.value.length + '个字'}`
+
+        // 画画的
+        if ($parent.isDrawer) return `我画: ${value}`
+
+        // 猜词的
+        const msg = [word.value.length + '个字']
+        pointOut && type && msg.unshift(type)
+        msg.unshift('提示: ')
+        return msg.join(' ')
       }
     },
     render() {
