@@ -1,5 +1,5 @@
 import WebSocket from 'ws'
-import { Game } from './Game'
+import { Game } from './game'
 import { send } from '../util/ws'
 
 const games = {}
