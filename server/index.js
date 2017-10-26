@@ -2,6 +2,7 @@ require('babel-register')
 const Koa = require('koa')
 const bodyParser = require('koa-bodyparser')
 const http = require('http')
+const history = require('koa-connect-history-api-fallback')
 
 const router = require('./router')
 const ws = require('./ws')
@@ -12,6 +13,8 @@ const server = http.createServer(app.callback())
 ws(server)
 
 app
+  .use(history({ index: '/index.html' }))
+  .use(require('koa-static')('./dist'))
   .use(bodyParser())
   .use(router.routes())
   .use(router.allowedMethods())
