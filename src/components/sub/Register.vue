@@ -5,7 +5,6 @@
       <form class="form" @submit.prevent="doRegister">
         <input class="g-name" type="text" v-model="name">
         <p class="tip">下次可以直接使用此名字登录</p>
-        <button type="button" class="refresh iconfont icon-refresh" @click="getName"></button>
         <button type="submit" class="button">→</button>
       </form>
     </div>
@@ -13,7 +12,6 @@
 </template>
 
 <script>
-  import gName from 'faker-zh-cn/lib/name'
   import { storage } from '@/util'
 
   export default {
@@ -40,7 +38,7 @@
         this.$emit('input', false)
       },
       getName() {
-        this.name = gName.findName()
+        this.name = ''
       }
     },
     created() {
