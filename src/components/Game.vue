@@ -32,7 +32,7 @@
     </div>
 
     <form class="footer" @submit.prevent="submitGuess">
-      <input v-model="guess" :placeholder="isDrawer ? '不可提示哦' : '第一个猜中的人可获得5分'" class="chat-input" type="text">
+      <input v-model="guess" :placeholder="isDrawer ? '不可提示哦' : '越早答对，分数越高哦'" class="chat-input" type="text">
       <button class="send-guess" type="submit">发送</button>
     </form>
     <div class="table"></div>
@@ -102,11 +102,14 @@
       playing() {
         const $canvas = this.$refs.$canvas
         $canvas.draw.clean()
+        $canvas.draw._history = []
         this.messages = []
-        this.ws.sendJSON({
-          action: 'setLineStyle',
-          args: [{ color: $canvas.colors.hex }, { width: $canvas.nibs[$canvas.activeNibIndex] }]
-        })
+        if (this.isDrawer) {
+          $canvas.setLine({
+            color: $canvas.colors.hex,
+            width: $canvas.nibs[$canvas.activeNibIndex]
+          })
+        }
       },
       end() {
         this.showRank = true
@@ -136,6 +139,15 @@
           this.showRegister = true
         }
       },
+      doDraw({ action, args }) {
+        const draw = this.$refs.$canvas.draw
+        const fn = draw[action]
+        if (['touch', 'drawing'].indexOf(action) > -1) {
+          const scale = draw.rect.width / args.pop()
+          return fn.apply(draw, args.map((arg) => arg * scale))
+        }
+        fn && fn.apply(draw, args)
+      },
       initWS() {
         const { id } = this.$route.params
         const ws = this.ws = open(`/${id}`)
@@ -144,16 +156,6 @@
         ws.addEventListener('message', ({ data }) => {
           const msg = JSON.parse(data)
           const { action, game } = msg
-
-          const doDraw = ({ action, args }) => {
-            const draw = this.$refs.$canvas.draw
-            const fn = draw[action]
-            if (['touch', 'drawing'].indexOf(action) > -1) {
-              const scale = draw.rect.width / args.pop()
-              return fn.apply(draw, args.map((arg) => arg * scale))
-            }
-            fn && fn.apply(draw, args)
-          }
 
           switch (action) {
             case 'game':
@@ -170,12 +172,12 @@
 
             case 'restore':
               const { history } = msg
-              history.forEach((step) => doDraw(step))
+              history.forEach((step) => this.doDraw(step))
               break
 
             default:
               if (this.isDrawer) return
-              doDraw(msg)
+              this.doDraw(msg)
           }
         })
 

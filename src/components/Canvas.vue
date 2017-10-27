@@ -40,22 +40,17 @@
       }
     },
     created() {
-      this.$watch('colors.hex', (hex) => {
-        this.draw.setLineStyle({ color: hex })
-        this.ws.sendJSON({
-          action: 'setLineStyle',
-          args: [{ color: hex }]
-        })
-      })
-      this.$watch('activeNibIndex', (index) => {
-        this.draw.setLineStyle({ width: this.nibs[index] })
-        this.ws.sendJSON({
-          action: 'setLineStyle',
-          args: [{ width: this.nibs[index] }]
-        })
-      })
+      this.$watch('colors.hex', (hex) => this.setLine({ color: hex }))
+      this.$watch('activeNibIndex', (index) => this.setLine({ width: this.nibs[index] }))
     },
     methods: {
+      setLine(args) {
+        this.draw.setLineStyle(args)
+        this.ws.sendJSON({
+          action: 'setLineStyle',
+          args: [args]
+        })
+      },
       clear() {
         const clear = window.confirm('清空画布咯?')
         if (clear) {
@@ -67,15 +62,15 @@
       },
       undo() {
         this.draw.undo()
-        this.ws.send(JSON.stringify({
+        this.ws.sendJSON({
           action: 'undo'
-        }))
+        })
       },
       redo() {
         this.draw.redo()
-        this.ws.send(JSON.stringify({
+        this.ws.sendJSON({
           action: 'redo'
-        }))
+        })
       },
       touchTools() {
         this.touchedTolls = true

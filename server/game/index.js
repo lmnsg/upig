@@ -6,6 +6,7 @@ import WordPool from '../word'
 
 export class Game {
   static time = 90
+  static roundLoops = 2
 
   constructor() {
     this.state = 'ready'
@@ -145,8 +146,7 @@ export class Game {
     this.state = 'roundEnd'
     this.update()
     clearTimeout(this.roundTimer)
-    // 3轮后结束游戏
-    if (round.index / this.players.length === 2) return this.end()
+    if (round.index / this.players.length === Game.roundLoops) return this.end()
     delay(5, () => this.nextRound())
   }
 
