@@ -2,6 +2,6 @@
 
 /usr/local/bin/cnpm install
 npm run build
-kill [']netstat -nlp | grep :8000 | awk '{print $7}' | awk -F"/" '{ print $1 }'[']
-npm run server
+/usr/local/bin/pm2 stop upig
+/usr/local/bin/pm2 start ./server/index.js --name="upig" --max_memory_restart 1024M
 
