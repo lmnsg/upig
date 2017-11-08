@@ -28,7 +28,7 @@
       </div>
     </div>
 
-    <div class="messages-box">
+    <div class="messages-box" ref="messageBox">
       <p v-for="msg in messages">{{ msg.user.name === user.name ? '我' : msg.user.name }}: {{ msg.text }}</p>
     </div>
 
@@ -94,6 +94,9 @@
         if (!round || round === old || this.game.state !== 'playing') return
         this.showRound = true
         setTimeout(() => this.showRound = false, 1000)
+      },
+      messages() {
+        this.$nextTick(() => this.$refs.messageBox.scrollTop = 999999)
       }
     },
     created() {
