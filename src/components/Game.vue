@@ -21,14 +21,15 @@
     </div>
 
     <div v-if="game" class="players">
-      <div class="player" :class="{ leave: player.state === 'leave' }" v-for="player in game.players">
-        <span class="name">{{ player.user.name }}</span>
+      <div class="player" :class="{ leave: player.state === 'leave' }" v-for="(player,$index) in game.players" track-by="$index">
+        <i v-show="showHuabi($index)" class="iconfont icon-huabi"></i>
+        <span class="name">{{ player.user.name === user.name ? '我' : player.user.name }}</span>
         <span class="grade">{{ player.score }}</span>
       </div>
     </div>
 
     <div class="messages-box">
-      <p v-for="msg in messages">{{ msg.user.name }}: {{ msg.text }}</p>
+      <p v-for="msg in messages">{{ msg.user.name === user.name ? '我' : msg.user.name }}: {{ msg.text }}</p>
     </div>
 
     <form class="footer" @submit.prevent="submitGuess">
@@ -75,9 +76,9 @@
     },
     computed: {
       isDrawer() {
-        if (!this.game) return
+        if (!this.game || !this.user) return false
         const { round, players } = this.game
-        if (!players[round.drawer]) return
+        if (!players[round.drawer]) return false
         return players[round.drawer].user.name === this.user.name
       },
       showShade() {
@@ -99,6 +100,9 @@
       this.initWS()
     },
     methods: {
+      showHuabi(idx) {
+        return this.game.state === 'playing' && idx === this.game.round.drawer
+      },
       playing() {
         const $canvas = this.$refs.$canvas
         $canvas.draw.clean()
@@ -257,6 +261,7 @@
 
     .players {
       .player {
+        position: relative;
         display: inline-block;
         margin: 6px 0 0 10px;
         padding: 0 10px;
@@ -271,9 +276,19 @@
       .player.leave {
         opacity: .4;
       }
+      .name {
+        /*vertical-align: middle;*/
+      }
       .grade {
-        font-size: 14px;
+        margin-left: .3em;
+        /*font-size: 14px;*/
         color: #d19bb0;
+        /*vertical-align: middle;*/
+      }
+      .icon-huabi {
+        font-size: 12px;
+        color: #d19bb0;
+        /*vertical-align: middle;*/
       }
     }
     .messages-box {

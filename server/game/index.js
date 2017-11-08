@@ -11,10 +11,12 @@ export class Game {
   constructor() {
     this.state = 'ready'
     this.players = [] // 所有玩家
+    this.tree = 0
     this.round = {
       index: 0, // 回合数
       word: {},
       right: 0,  // 答对数
+      mrRight: [],
       pointOut: false,
       totalTimes: Game.time,
       drawer: 0,
@@ -44,11 +46,15 @@ export class Game {
     // 猜错了
     if (text !== round.word.value) return this.$broadcast({ action: 'guess', user: player.user, text })
 
+    // 答对后不允许再次回答
+    if (round.mrRight.includes(player)) return
+
     // 猜对了
     const score = players.length - 1 - round.right
     player.score += score
     round.right++
     players[round.drawer].score++
+    round.mrRight.push(player)
 
     this.$broadcast({ action: 'guess', user: player.user, text: `猜对了! +${score}分` })
 
@@ -82,24 +88,26 @@ export class Game {
   }
 
   join(ws, user) {
-    const { players } = this
-    let exist = players.findIndex(({ user: { name } }) => user.name === name)
+    const { players, state, owner } = this
+    let idx = players.findIndex(({ user: { name } }) => user.name === name)
 
-    if (exist !== -1) {
-      players[exist].state = ''
-      this.players[exist].ws = ws
-      if (this.state === 'playing') {
+    // 新玩家加入
+    if (idx === -1) {
+      if (!owner) this.owner = user.name
+      if (state !== 'ready') {
+        // 观战
+        this.tree++
+      } else {
+        const player = new Player({ ws, user })
+        user.name === owner ? players.unshift(player) : players.push(player)
+      }
+    } else {
+      // 对局中离线
+      players[idx].state = ''
+      players[idx].ws = ws
+      if (state === 'playing') {
         send(ws, { action: 'restore', history: this.round.history })
       }
-      return this.update()
-    }
-    const player = new Player({ ws, user })
-
-    if (user.isOwner) {
-      // 房主在第一位
-      this.players.unshift(player)
-    } else {
-      this.players.push(player)
     }
 
     this.update()

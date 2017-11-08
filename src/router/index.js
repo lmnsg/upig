@@ -9,6 +9,14 @@ const router = new Router({
   mode: 'history',
   routes: [
     {
+      path: '/logout',
+      component: {
+        render() {
+          localStorage.clear()
+        }
+      }
+    },
+    {
       path: '/game/:id',
       name: 'game',
       component: Game
