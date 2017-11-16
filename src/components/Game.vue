@@ -6,6 +6,7 @@
     </div>
     <div class="main" v-if="game">
       <MyCanvas ref="$canvas" v-if="ws" :ws="ws" :game="game" :is-drawer="isDrawer"></MyCanvas>
+      <Barrage ref="barrage"></Barrage>
       <div v-show="showShade" class="shade"></div>
       <div v-show="game.state === 'ready'">
         <button v-if="isOwner" @click="beginGame" class="btn-beginning">
@@ -26,10 +27,6 @@
         <span class="name">{{ player.user.name === user.name ? '我' : player.user.name }}</span>
         <span class="grade">{{ player.score }}</span>
       </div>
-    </div>
-
-    <div class="messages-box" ref="messageBox">
-      <p v-for="msg in messages">{{ msg.user.name === user.name ? '我' : msg.user.name }}: {{ msg.text }}</p>
     </div>
 
     <form class="footer" @submit.prevent="submitGuess">
@@ -82,7 +79,9 @@
         return players[round.drawer].user.name === this.user.name
       },
       showShade() {
-        return this.game.state === 'playing' ? !this.isDrawer : true
+        const state = this.game.state
+        if (state === 'end') return false
+        return state === 'playing' ? !this.isDrawer : true
       }
     },
     watch: {
@@ -94,9 +93,6 @@
         if (!round || round === old || this.game.state !== 'playing') return
         this.showRound = true
         setTimeout(() => this.showRound = false, 1000)
-      },
-      messages() {
-        this.$nextTick(() => this.$refs.messageBox.scrollTop = 999999)
       }
     },
     created() {
@@ -108,6 +104,7 @@
       },
       playing() {
         const $canvas = this.$refs.$canvas
+        if (!$canvas) return
         $canvas.draw.clean()
         $canvas.draw._history = []
         this.messages = []
@@ -122,7 +119,8 @@
         this.showRank = true
       },
       submitGuess() {
-        if (this.isDrawer) return
+        const { isDrawer, game } = this
+        if (isDrawer && game.state === 'playing') return
         this.ws.sendJSON({
           action: 'guess',
           guess: this.guess
@@ -174,7 +172,7 @@
               break
 
             case 'guess':
-              this.messages.push(msg)
+              this.$refs.barrage.shoot(`${msg.user.name}: ${msg.text}`)
               break
 
             case 'restore':
@@ -206,7 +204,7 @@
       Register,
       RoundEnd,
       GameEnd: require('./sub/GameEnd.vue'),
-      Dialog: require('./sub/Dialog.vue')
+      Barrage: require('./sub/Barrage.vue')
     }
   }
 </script>
@@ -263,6 +261,7 @@
     }
 
     .players {
+      flex: 1;
       .player {
         position: relative;
         display: inline-block;
@@ -279,19 +278,13 @@
       .player.leave {
         opacity: .4;
       }
-      .name {
-        /*vertical-align: middle;*/
-      }
       .grade {
         margin-left: .3em;
-        /*font-size: 14px;*/
         color: #d19bb0;
-        /*vertical-align: middle;*/
       }
       .icon-huabi {
         font-size: 12px;
         color: #d19bb0;
-        /*vertical-align: middle;*/
       }
     }
     .messages-box {
