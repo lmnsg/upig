@@ -1,10 +1,9 @@
 <template>
-  <div v-show="value" class="popup">
+  <div class="wrapper">
     <div class="register">
       <div class="title">你的名字?</div>
       <form class="form" @submit.prevent="doRegister">
         <input class="g-name" type="text" v-model="name">
-        <p class="tip">下次可以直接使用此名字登录</p>
         <button type="submit" class="button">→</button>
       </form>
     </div>
@@ -15,7 +14,6 @@
   import { storage } from '@/util'
 
   export default {
-    props: ['value'],
     data() {
       return {
         name: ''
@@ -33,9 +31,7 @@
           name: pureName
         }
         storage.setItem('user', user)
-
-        this.$emit('done', user)
-        this.$emit('input', false)
+        this.$router.back()
       },
       getName() {
         this.name = ''
@@ -48,18 +44,18 @@
 </script>
 
 <style lang="scss" scoped="">
-  .popup {
-    display: flex;
-    align-items: center;
-    justify-content: center;
+  .wrapper {
+    flex: 1;
+    background: #fff;
   }
+
   .register {
+    margin: 50% auto;
     width: 300px;
     border-radius: 4px;
     background: #fff;
 
     .title {
-      padding: 20px 0 0;
       text-align: center;
       color: #D17B8E;
       font-size: 20px;
@@ -69,7 +65,7 @@
       display: flex;
       flex-direction: column;
       justify-content: center;
-      height: 200px;
+      margin-top: 20px;
       padding: 0 20px;
     }
     .g-name {
@@ -79,26 +75,29 @@
       text-align: center;
       font-size: 16px;
       color: #444;
-      border-radius: 6px;
       border-bottom: 1px #D17B8E solid;
     }
     .button {
       margin-top: 20px;
       color: #D17B8E;
-      font-size:  20px;
+      font-size: 20px;
       font-weight: 600;
-    }
-    .refresh {
-      position: absolute;
-      right: 20px;
-      top: 52px;
-      color: #1f80c4;
+      animation: button .6s ease infinite alternate;
     }
     .tip {
+      margin-top: 14px;
       font-size: 12px;
       color: #D17B8E;
       text-align: center;
-      margin-top: 10px;
+    }
+  }
+
+  @keyframes button {
+    from {
+      transform: translate(-4px, 0);
+    }
+    to {
+      transform: translate(4px, 0);
     }
   }
 </style>

@@ -64,7 +64,7 @@
       display: inline-block;
       padding: 0 .8em;
       height: 2em;
-      line-height: 2em;
+      line-height: 1.8em;
       font-size: 12px;
       border-radius: 1em;
       border: 1px solid #d09aaf;

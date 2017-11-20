@@ -1,7 +1,6 @@
 <template>
   <div class="home">
     <button @click="start" class="start iconfont icon-kaishi"> 开始游戏 </button>
-    <Register @done="go" v-model="showRegister"></Register>
   </div>
 </template>
 
@@ -22,7 +21,7 @@
         if (user) {
           this.go()
         } else {
-          this.showRegister = true
+          this.$router.push({ name: 'register' })
         }
       },
       go() {
@@ -32,9 +31,6 @@
         owner[id] = 1
         storage.setItem('owner', owner)
       }
-    },
-    components: {
-      Register: require('./sub/Register.vue')
     }
   }
 </script>

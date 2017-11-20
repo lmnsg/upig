@@ -13,8 +13,6 @@ module.exports = (server) => {
     if (!games[uuid]) games[uuid] = new Game()
     const game = games[uuid]
 
-    send(ws, { action: 'game', game })
-
     ws.on('message', (message) => {
       if (typeof message !== 'string') {
         console.log(message)

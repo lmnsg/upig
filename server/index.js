@@ -13,7 +13,7 @@ const server = http.createServer(app.callback())
 ws(server)
 
 app
-  .use(history({ index: '/index.html' }))
+  .use(history())
   .use(require('koa-static')('./dist'))
   .use(bodyParser())
   .use(router.routes())

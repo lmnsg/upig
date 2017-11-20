@@ -5,7 +5,7 @@
       <MyTitle :game="game"></MyTitle>
     </div>
     <div class="main" v-if="game">
-      <MyCanvas ref="$canvas" v-if="ws" :ws="ws" :game="game" :is-drawer="isDrawer"></MyCanvas>
+      <MyCanvas ref="$canvas" :ws="ws" :game="game" :is-drawer="isDrawer"></MyCanvas>
       <Barrage ref="barrage"></Barrage>
       <div v-show="showShade" class="shade"></div>
       <div v-show="game.state === 'ready'">
@@ -22,9 +22,10 @@
     </div>
 
     <div v-if="game" class="players">
-      <div class="player" :class="{ leave: player.state === 'leave' }" v-for="(player,$index) in game.players" track-by="$index">
+      <div class="player" :class="{ leave: player.state === 'leave' }" v-for="(player,$index) in game.players"
+           track-by="$index">
         <i v-show="showHuabi($index)" class="iconfont icon-huabi"></i>
-        <span class="name">{{ player.user.name === user.name ? '我' : player.user.name }}</span>
+        <span class="name">{{ isMe(player.user) ? '我' : player.user.name }}</span>
         <span class="grade">{{ player.score }}</span>
       </div>
     </div>
@@ -34,7 +35,6 @@
       <button class="send-guess" type="submit">发送</button>
     </form>
     <div class="table"></div>
-    <Register @done="join" v-model="showRegister"></Register>
 
     <div class="rank" v-show="showRank">
 
@@ -44,7 +44,6 @@
 
 <script>
   import Canvas from './Canvas.vue'
-  import Register from './sub/Register.vue'
   import RoundEnd from './sub/RoundEnd.vue'
   import { open } from '../client'
   import { storage } from '../util'
@@ -96,9 +95,14 @@
       }
     },
     created() {
+      const user = this.user = storage.getItem('user')
+      if (!user) return this.$router.push({ name: 'register' })
       this.initWS()
     },
     methods: {
+      isMe(user) {
+        return user && this.user && user.name === this.user.name
+      },
       showHuabi(idx) {
         return this.game.state === 'playing' && idx === this.game.round.drawer
       },
@@ -133,16 +137,11 @@
         })
       },
       join() {
-        const user = this.user = storage.getItem('user')
-        if (user) {
-          this.ws.sendJSON({
-            action: 'join',
-            user: this.user,
-            isOwner: this.isOwner
-          })
-        } else {
-          this.showRegister = true
-        }
+        this.ws.sendJSON({
+          action: 'join',
+          user: this.user,
+          isOwner: this.isOwner
+        })
       },
       doDraw({ action, args }) {
         const draw = this.$refs.$canvas.draw
@@ -201,7 +200,6 @@
     components: {
       MyCanvas: Canvas,
       MyTitle: require('./sub/Title.vue'),
-      Register,
       RoundEnd,
       GameEnd: require('./sub/GameEnd.vue'),
       Barrage: require('./sub/Barrage.vue')
