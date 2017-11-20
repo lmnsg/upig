@@ -4,7 +4,7 @@
       <div v-show="roundTime && game.state === 'playing'" class="counter">{{ roundTime }}</div>
       <MyTitle :game="game"></MyTitle>
     </div>
-    <div class="main" v-if="game">
+    <div class="main">
       <MyCanvas ref="$canvas" :ws="ws" :game="game" :is-drawer="isDrawer"></MyCanvas>
       <Barrage ref="barrage"></Barrage>
       <div v-show="showShade" class="shade"></div>
@@ -59,7 +59,7 @@
         showRank: false,
         user: storage.getItem('user'),
         isOwner: owner && owner[this.$route.params.id],
-        game: null,
+        game: {},
         counter: 0,
         board: {
           width: 0,
@@ -72,12 +72,13 @@
     },
     computed: {
       isDrawer() {
-        if (!this.game || !this.user) return false
         const { round, players } = this.game
+        if (!players || !round) return
         if (!players[round.drawer]) return false
         return players[round.drawer].user.name === this.user.name
       },
       showShade() {
+        if (!this.game) return true
         const state = this.game.state
         if (state === 'end') return false
         return state === 'playing' ? !this.isDrawer : true
