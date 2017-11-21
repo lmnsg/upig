@@ -4,10 +4,10 @@ import { send } from '../../util/ws'
 import { def, delay } from '../../util/shared'
 import WordPool from '../word'
 
-export class Game {
-  static time = 90
-  static roundLoops = 2
+const TIME = 90
+const ROUND_LOOPS = 2
 
+export class Game {
   constructor() {
     this.state = 'ready'
     this.players = [] // 所有玩家
@@ -18,7 +18,7 @@ export class Game {
       right: 0,  // 答对数
       mrRight: [],
       pointOut: false,
-      totalTimes: Game.time,
+      totalTimes: TIME,
       drawer: 0,
       imageData: null,
       history: []
@@ -71,7 +71,7 @@ export class Game {
     const { round } = this
     this.roundTimer = setInterval(() => {
       this.$broadcast({ action: 'counting', time: --round.totalTimes })
-      if (round.totalTimes === Game.time - 15) {
+      if (round.totalTimes === TIME - 15) {
         // 15 秒后显示关键词提示
         this.round.pointOut = true
         this.update()
@@ -133,7 +133,7 @@ export class Game {
     this.state = 'playing'
     round.index++
     round.history.length = round.right = feedback.flowers = feedback.shit = 0
-    round.totalTimes = Game.time
+    round.totalTimes = TIME
   }
 
   nextRound() {
@@ -154,7 +154,7 @@ export class Game {
     this.state = 'roundEnd'
     this.update()
     clearTimeout(this.roundTimer)
-    if (round.index / this.players.length === Game.roundLoops) return this.end()
+    if (round.index / this.players.length === ROUND_LOOPS) return this.end()
     delay(5, () => this.nextRound())
   }
 

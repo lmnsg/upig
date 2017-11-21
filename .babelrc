@@ -1,14 +1,17 @@
 {
   "presets": [
-    ["env"],
-    "stage-2"
+    [
+      "env",
+      {
+        "targets": {
+          "browsers": [
+            "last 2 versions",
+            "safari >= 7"
+          ]
+        }
+      }
+    ]
   ],
   "plugins": ["transform-runtime", "transform-vue-jsx"],
-  "comments": false,
-  "env": {
-    "test": {
-      "presets": ["env", "stage-2"],
-      "plugins": [ "istanbul" ]
-    }
-  }
+  "comments": false
 }

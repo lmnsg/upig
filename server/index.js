@@ -14,7 +14,7 @@ ws(server)
 
 app
   .use(history())
-  .use(require('koa-static')('./dist'))
+  .use(require('koa-static-cache')('./dist', { maxAge: 365 * 24 * 60 * 60 }))
   .use(bodyParser())
   .use(router.routes())
   .use(router.allowedMethods())

@@ -1,13 +1,12 @@
 export default class Draw {
-  _lineWidth = 2
-  _lineColor = 'red'
-  _history = []
-  _redoQueue = []
-  _lastX
-  _lastY
-  _points = []
-
   constructor ($canvas) {
+    this._lineWidth = 2
+    this._lineColor = 'red'
+    this._history = []
+    this._redoQueue = []
+    this._lastX = 0
+    this._lastY = 0
+    this._points = []
     this.$canvas = $canvas
     this.ctx = $canvas.getContext('2d')
     this.rect = $canvas.getBoundingClientRect()
